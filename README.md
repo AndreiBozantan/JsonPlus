@@ -3,8 +3,8 @@
 JsonPlus is a C# JSON library which preserves trivia during round-trip decoding/encoding.
 The average decoding performance is around 2.5x slower than `System.Text.Json`.
 
-The parsers supports updating the resulting object model, including trivia (comments, whitespace, etc.),
-and re-serializing it back to JSON with the rest of the formatting intact.
+The library supports changes of the resulting object model, including trivia (comments, whitespace, etc.),
+and re-serialization back to JSON, with the rest of the formatting intact.
 
 Below is an example of modifying a property value while preserving comments and formatting.
 
