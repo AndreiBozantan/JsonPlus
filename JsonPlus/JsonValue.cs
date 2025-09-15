@@ -39,75 +39,81 @@ public class JsonTriviaCollection : List<JsonTrivia>
     public JsonTriviaCollection(IEnumerable<JsonTrivia> collection) : base(collection) { }
 }
 
-public interface IJsonValue
+public abstract class JsonValue
 {
-    public JsonValueKind Kind { get; }
+    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
 
-    public bool IsPrimitive { get; }
+    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
 
-    public JsonTriviaCollection LeadingTrivia { get; set; }
+    public virtual JsonValueKind Kind { get; }
 
-    public JsonTriviaCollection TrailingTrivia { get; set; }
+    public virtual bool IsPrimitive { get; }
 
-    public JsonArray GetArrayValue() => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual string GetRawValue() => throw new InvalidOperationException($"Value is not a string (actual type: {Kind})");
 
-    public JsonObject GetObjectValue() => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual string GetString() => throw new InvalidOperationException($"Value is not a string (actual type: {Kind})");
 
-    public JsonString GetStringValue() => throw new InvalidOperationException($"Value is not a string (actual type: {Kind})");
+    public virtual double GetDouble() => throw new InvalidOperationException($"Value is not a number (actual type: {Kind})");
 
-    public JsonNumber GetNumberValue() => throw new InvalidOperationException($"Value is not a number (actual type: {Kind})");
+    public virtual bool GetBoolean() => throw new InvalidOperationException($"Value is not a boolean (actual type: {Kind})");
 
-    public JsonBoolean GetBooleanValue() => throw new InvalidOperationException($"Value is not a boolean (actual type: {Kind})");
+    public virtual JsonArray GetArrayValue() => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 
-    public JsonNull GetNullValue() => throw new InvalidOperationException($"Value is not null (actual type: {Kind})");
+    public virtual JsonObject GetObjectValue() => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public string GetString() => throw new InvalidOperationException($"Value is not a string (actual type: {Kind})");
+    public virtual JsonString GetStringValue() => throw new InvalidOperationException($"Value is not a string (actual type: {Kind})");
 
-    public double GetDouble() => throw new InvalidOperationException($"Value is not a number (actual type: {Kind})");
+    public virtual JsonNumber GetNumberValue() => throw new InvalidOperationException($"Value is not a number (actual type: {Kind})");
 
-    public bool GetBoolean() => throw new InvalidOperationException($"Value is not a boolean (actual type: {Kind})");
+    public virtual JsonBoolean GetBooleanValue() => throw new InvalidOperationException($"Value is not a boolean (actual type: {Kind})");
 
-    public JsonProperty GetProperty(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonNull GetNullValue() => throw new InvalidOperationException($"Value is not null (actual type: {Kind})");
 
-    public IJsonValue GetPropertyValue(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonProperty GetProperty(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue SetProperty(string key, IJsonValue value) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonValue GetPropertyValue(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue AddProperty(string key, IJsonValue value) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonValue SetProperty(string key, JsonValue value) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue InsertProperty(int index, JsonProperty property) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonValue AddProperty(string key, JsonValue value) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue RemoveProperty(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
+    public virtual JsonValue InsertProperty(int index, JsonProperty property) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue GetItem(int index) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue RemoveProperty(string key) => throw new InvalidOperationException($"Value is not an object (actual type: {Kind})");
 
-    public IJsonValue SetItem(int index, IJsonValue newValue) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue GetItem(int index) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 
-    public IJsonValue AddItem(IJsonValue item) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue SetItem(int index, JsonValue newValue) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 
-    public IJsonValue InsertItem(int index, IJsonValue newValue) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue AddItem(JsonValue item) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 
-    public IJsonValue RemoveItem(IJsonValue item) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue InsertItem(int index, JsonValue newValue) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 
-    public IJsonValue RemoveItemAt(int index) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+    public virtual JsonValue RemoveItem(JsonValue item) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
+
+    public virtual JsonValue RemoveItemAt(int index) => throw new InvalidOperationException($"Value is not an array (actual type: {Kind})");
 }
 
-public sealed record JsonProperty(JsonString Key, IJsonValue Value)
+public sealed class JsonProperty
 {
-    public JsonProperty(string key, IJsonValue value) : this(new JsonString(key), value) { }
+    public JsonString Key { get; set; }
 
-    public IJsonValue Value { get; set; } = Value;
+    public JsonValue Value { get; set; }
 
-    public IJsonValue GetValue() => Value;
+    public JsonProperty(JsonString key, JsonValue value) => (Key, Value) = (key, value);
 
-    public JsonProperty SetValue(IJsonValue newValue)
+    public JsonProperty(string key, JsonValue value) => (Key, Value) = (new JsonString(key), value);
+
+    public JsonValue GetValue() => Value;
+
+    public JsonProperty SetValue(JsonValue newValue)
     {
         Value = newValue;
         return this;
     }
 }
 
-public sealed record JsonString : IJsonValue, IEquatable<string>, IEquatable<JsonString>
+public sealed class JsonString : JsonValue, IEquatable<string>, IEquatable<JsonString>
 {
     public string Value { get; private set; }
 
@@ -117,163 +123,163 @@ public sealed record JsonString : IJsonValue, IEquatable<string>, IEquatable<Jso
 
     public JsonString(string value) : this(value, JsonCodec.EncodeString(value)) { }
 
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
+    public override JsonValueKind Kind => JsonValueKind.String;
 
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
+    public override bool IsPrimitive => true;
 
-    public JsonValueKind Kind => JsonValueKind.String;
+    public override string GetString() => Value;
 
-    public JsonString GetStringValue() => this;
+    public override string GetRawValue() => RawValue;
 
-    public string GetString() => Value;
+    public override JsonString GetStringValue() => this;
+
+    public override string ToString() => Value;
+
+    public override int GetHashCode() => Value.GetHashCode();
+
+    public override bool Equals(object? obj) => Equals(obj as JsonString);
 
     public bool Equals(string? other) => Value.Equals(other);
 
     public bool Equals(JsonString? other) => other is not null && Value.Equals(other.Value);
-
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public override string ToString() => Value;
-
-    public bool IsPrimitive => true;
 }
 
-public sealed record JsonNumber(string RawValue): IJsonValue, IEquatable<double>, IEquatable<JsonNumber>
+public sealed class JsonNumber: JsonValue, IEquatable<double>, IEquatable<JsonNumber>
 {
     private double? Value;
 
-    public JsonNumber(double value) : this(value.ToString(System.Globalization.CultureInfo.InvariantCulture)) { }
+    private readonly string RawValue;
 
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
+    public JsonNumber(string rawValue) => RawValue = rawValue;
 
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
+    public JsonNumber(double value) => (Value, RawValue) = (value, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-    public JsonValueKind Kind => JsonValueKind.Number;
+    public override JsonValueKind Kind => JsonValueKind.Number;
 
-    public JsonNumber GetNumberValue() => this;
+    public override bool IsPrimitive => true;
 
-    public double GetDouble() => Value ??= double.Parse(RawValue, System.Globalization.CultureInfo.InvariantCulture);
+    public override string GetRawValue() => RawValue;
+
+    public override double GetDouble() => Value ??= double.Parse(RawValue, System.Globalization.CultureInfo.InvariantCulture);
+
+    public override JsonNumber GetNumberValue() => this;
+
+    public override int GetHashCode() => Value.GetHashCode();
+
+    public override bool Equals(object? obj) => Equals(obj as JsonString);
 
     public bool Equals(double other) => Value.Equals(other);
 
     public bool Equals(JsonNumber? other) => other is not null && Value.Equals(other.Value);
+}
+
+public sealed class JsonBoolean: JsonValue, IEquatable<bool>, IEquatable<JsonBoolean>
+{
+    public JsonBoolean(bool value) => Value = value;
+
+    public bool Value { get; }
+
+    public override JsonValueKind Kind => JsonValueKind.Boolean;
+
+    public override bool IsPrimitive => true;
+
+    public override bool GetBoolean() => Value;
+
+    public override JsonBoolean GetBooleanValue() => this;
 
     public override int GetHashCode() => Value.GetHashCode();
 
-    public bool IsPrimitive => true;
-}
-
-public sealed record JsonBoolean(bool Value): IJsonValue, IEquatable<bool>, IEquatable<JsonBoolean>
-{
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
-
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
-
-    public JsonValueKind Kind => JsonValueKind.Boolean;
-
-    public JsonBoolean GetBooleanValue() => this;
-
-    public bool GetBoolean() => Value;
+    public override bool Equals(object? obj) => Equals(obj as JsonString);
 
     public bool Equals(bool other) => Value.Equals(other);
 
     public bool Equals(JsonBoolean? other) => other is not null && Value.Equals(other.Value);
-
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public bool IsPrimitive => true;
 }
 
-public sealed record JsonNull: IJsonValue, IEquatable<JsonNull>
+public sealed class JsonNull: JsonValue, IEquatable<JsonNull>
 {
     public JsonNull() { }
 
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
+    public override JsonValueKind Kind => JsonValueKind.Null;
 
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
+    public override bool IsPrimitive => true;
 
-    public JsonValueKind Kind => JsonValueKind.Null;
-
-    public JsonNull GetNullValue() => this;
-
-    public bool Equals(JsonNull? other) => other is not null;
+    public override JsonNull GetNullValue() => this;
 
     public override int GetHashCode() => 0;
 
-    public bool IsPrimitive => true;
+    public override bool Equals(object? obj) => Equals(obj as JsonString);
+
+    public bool Equals(JsonNull? other) => other is not null;
 }
 
-public class JsonArray : IJsonValue, IList<IJsonValue>, IEquatable<JsonArray>
+public class JsonArray : JsonValue, IList<JsonValue>, IEquatable<JsonArray>
 {
-    private List<IJsonValue> Items { get; } = new List<IJsonValue>(8);
+    private List<JsonValue> Items { get; } = new List<JsonValue>(8);
 
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
+    public override JsonValueKind Kind => JsonValueKind.Array;
 
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
+    public override bool IsPrimitive => false;
 
-    public JsonValueKind Kind => JsonValueKind.Array;
-
-    public JsonArray GetArrayValue() => this;
-
-    public bool IsPrimitive => false;
+    public override JsonArray GetArrayValue() => this;
 
     public int Count => Items.Count;
 
     public bool IsReadOnly => false;
 
-    public IJsonValue this[int index] { get => Items[index]; set => Items[index] = value; }
+    public JsonValue this[int index] { get => Items[index]; set => Items[index] = value; }
 
-    public int IndexOf(IJsonValue item) => Items.IndexOf(item);
+    public int IndexOf(JsonValue item) => Items.IndexOf(item);
 
-    public void Insert(int index, IJsonValue item) => Items.Insert(index, item);
+    public void Insert(int index, JsonValue item) => Items.Insert(index, item);
 
     public void RemoveAt(int index) => Items.RemoveAt(index);
 
     public void Clear() => Items.Clear();
 
-    public bool Contains(IJsonValue item) => Items.Contains(item);
+    public bool Contains(JsonValue item) => Items.Contains(item);
 
-    public void CopyTo(IJsonValue[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
+    public void CopyTo(JsonValue[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
 
-    public bool Remove(IJsonValue item) => Items.Remove(item);
+    public bool Remove(JsonValue item) => Items.Remove(item);
 
-    public IEnumerator<IJsonValue> GetEnumerator() => Items.GetEnumerator();
+    public IEnumerator<JsonValue> GetEnumerator() => Items.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Items.GetEnumerator();
 
-    public IJsonValue GetItem(int index) => Items[index];
+    public override JsonValue GetItem(int index) => Items[index];
 
-    public IJsonValue SetItem(int index, IJsonValue item)
+    public override JsonValue SetItem(int index, JsonValue item)
     {
         Items[index] = item;
         return this;
     }
 
-    public IJsonValue InsertItem(int index, IJsonValue item)
+    public override JsonValue InsertItem(int index, JsonValue item)
     {
         Insert(index, item);
         return this;
     }
 
-    public IJsonValue RemoveItemAt(int index)
+    public override JsonValue RemoveItemAt(int index)
     {
         RemoveAt(index);
         return this;
     }
 
-    public IJsonValue RemoveItem(IJsonValue item)
+    public override JsonValue RemoveItem(JsonValue item)
     {
         Remove(item);
         return this;
     }
 
-    public IJsonValue AddItem(IJsonValue item)
+    public override JsonValue AddItem(JsonValue item)
     {
         Add(item);
         return this;
     }
 
-    public void Add(IJsonValue item)
+    public void Add(JsonValue item)
     {
         if (Items.Count > 0)
         {
@@ -294,6 +300,11 @@ public class JsonArray : IJsonValue, IList<IJsonValue>, IEquatable<JsonArray>
             }
         }
         Items.Add(item);
+    }
+
+    public override int GetHashCode()
+    {
+        return Items.GetHashCode();
     }
 
     public override bool Equals(object? obj)
@@ -317,39 +328,30 @@ public class JsonArray : IJsonValue, IList<IJsonValue>, IEquatable<JsonArray>
         return true;
     }
 
-    public override int GetHashCode()
-    {
-        return Items.GetHashCode();
-    }
-
     /// <summary>
     /// Used during parsing to add items without modifying trivia.
     /// </summary>
-    internal void AddParsedValue(IJsonValue item)
+    internal void AddParsedValue(JsonValue item)
     {
         Items.Add(item);
     }
 }
 
-public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<JsonProperty>, IEquatable<JsonObject>
+public class JsonObject: JsonValue, IDictionary<string, JsonValue>, IList<JsonProperty>, IEquatable<JsonObject>
 {
     private readonly List<JsonProperty> Sequence = new(8);
 
     private readonly Dictionary<string, JsonProperty> Items = new(8);
 
-    public JsonTriviaCollection LeadingTrivia { get; set; } = [];
+    public override JsonValueKind Kind => JsonValueKind.Object;
 
-    public JsonTriviaCollection TrailingTrivia { get; set; } = [];
+    public override bool IsPrimitive => false;
 
-    public JsonValueKind Kind => JsonValueKind.Object;
-
-    public JsonObject GetObjectValue() => this;
-
-    public bool IsPrimitive => false;
+    public override JsonObject GetObjectValue() => this;
 
     public ICollection<string> Keys => Items.Keys;
 
-    public ICollection<IJsonValue> Values => [.. Items.Values.Select(it => it.Value)];
+    public ICollection<JsonValue> Values => [.. Items.Values.Select(it => it.Value)];
 
     public int Count => Items.Count;
 
@@ -361,7 +363,7 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         set => Sequence[index]= value;
     }
 
-    public IJsonValue this[string key]
+    public JsonValue this[string key]
     {
         get => Items[key].Value;
         set
@@ -386,7 +388,7 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         }
     }
 
-    public JsonProperty GetProperty(string key)
+    public override JsonProperty GetProperty(string key)
     {
         if (Items.TryGetValue(key, out var prop))
         {
@@ -395,7 +397,7 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         throw new KeyNotFoundException($"The given key '{key}' was not present in the JsonObject.");
     }
 
-    public IJsonValue GetPropertyValue(string key)
+    public override JsonValue GetPropertyValue(string key)
     {
         if (Items.TryGetValue(key, out var prop))
         {
@@ -404,25 +406,25 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         throw new KeyNotFoundException($"The given key '{key}' was not present in the JsonObject.");
     }
 
-    public IJsonValue SetProperty(string key, IJsonValue value)
+    public override JsonValue SetProperty(string key, JsonValue value)
     {
         this[key] = value;
         return this;
     }
 
-    public IJsonValue AddProperty(string key, IJsonValue value)
+    public override JsonValue AddProperty(string key, JsonValue value)
     {
         Add(key, value);
         return this;
     }
 
-    public IJsonValue InsertProperty(int index, JsonProperty property)
+    public override JsonValue InsertProperty(int index, JsonProperty property)
     {
         Insert(index, property);
         return this;
     }
 
-    public IJsonValue RemoveProperty(string key)
+    public override JsonValue RemoveProperty(string key)
     {
         Remove(key);
         return this;
@@ -437,12 +439,12 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         Sequence.Add(prop);
     }
 
-    public void Add(KeyValuePair<string, IJsonValue> item)
+    public void Add(KeyValuePair<string, JsonValue> item)
     {
         Add(item.Key, item.Value);
     }
 
-    public void Add(string key, IJsonValue value)
+    public void Add(string key, JsonValue value)
     {
         if (Items.ContainsKey(key))
         {
@@ -491,7 +493,7 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         return false;
     }
 
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out IJsonValue value)
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out JsonValue value)
     {
         if (Items.TryGetValue(key, out var prop))
         {
@@ -508,21 +510,21 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         Sequence.Clear();
     }
 
-    public bool Contains(KeyValuePair<string, IJsonValue> item)
+    public bool Contains(KeyValuePair<string, JsonValue> item)
     {
         if (Items.TryGetValue(item.Key, out var prop))
         {
-            return EqualityComparer<IJsonValue>.Default.Equals(prop.Value, item.Value);
+            return EqualityComparer<JsonValue>.Default.Equals(prop.Value, item.Value);
         }
         return false;
     }
 
-    public void CopyTo(KeyValuePair<string, IJsonValue>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<string, JsonValue>[] array, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<string, IJsonValue>>)Items).CopyTo(array, arrayIndex);
+        ((ICollection<KeyValuePair<string, JsonValue>>)Items).CopyTo(array, arrayIndex);
     }
 
-    public bool Remove(KeyValuePair<string, IJsonValue> item)
+    public bool Remove(KeyValuePair<string, JsonValue> item)
     {
         if (Contains(item))
         {
@@ -531,9 +533,9 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         return false;
     }
 
-    public IEnumerator<KeyValuePair<string, IJsonValue>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, JsonValue>> GetEnumerator()
     {
-        return Items.Select(kv => new KeyValuePair<string, IJsonValue>(kv.Key, kv.Value.Value)).GetEnumerator();
+        return Items.Select(kv => new KeyValuePair<string, JsonValue>(kv.Key, kv.Value.Value)).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -558,7 +560,7 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         {
             return false;
         }
-        if (!EqualityComparer<IJsonValue>.Default.Equals(item.Value, prop.Value))
+        if (!EqualityComparer<JsonValue>.Default.Equals(item.Value, prop.Value))
         {
             return false;
         }
@@ -581,6 +583,11 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
         return Sequence.GetEnumerator();
     }
 
+    public override int GetHashCode()
+    {
+        return Sequence.GetHashCode();
+    }
+
     public override bool Equals(object? obj)
     {
         return Equals(obj as JsonObject);
@@ -600,11 +607,6 @@ public class JsonObject: IJsonValue, IDictionary<string, IJsonValue>, IList<Json
             }
         }
         return true;
-    }
-
-    public override int GetHashCode()
-    {
-        return Sequence.GetHashCode();
     }
 
     private static void CopyTrivia(JsonProperty src, JsonProperty dst, bool isLast)

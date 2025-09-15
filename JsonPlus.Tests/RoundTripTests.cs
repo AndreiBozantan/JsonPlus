@@ -99,7 +99,7 @@ public class RoundTripTests
         }
     }
 
-    static bool Compare(System.Text.Json.JsonElement expected, IJsonValue actual)
+    static bool Compare(System.Text.Json.JsonElement expected, JsonValue actual)
     {
         return expected.ValueKind switch
         {

@@ -4,14 +4,14 @@ using System.Text;
 
 public partial class JsonCodec
 {
-    public static string Debug(IJsonValue value)
+    public static string Debug(JsonValue value)
     {
         var sb = new StringBuilder();
         DebugAppendValue(value, sb, 0);
         return sb.ToString();
     }
 
-    private static void DebugAppendValue(IJsonValue value, StringBuilder sb, int indent)
+    private static void DebugAppendValue(JsonValue value, StringBuilder sb, int indent)
     {
         AppendLeadingTrivia(value.Kind.ToString(), value.LeadingTrivia, sb);
         switch (value.Kind)
@@ -20,13 +20,13 @@ public partial class JsonCodec
                 sb.Append("null");
                 break;
             case JsonValueKind.Boolean:
-                sb.Append(((JsonBoolean)value).Value ? "true" : "false");
+                sb.Append(value.GetBoolean() ? "true" : "false");
                 break;
             case JsonValueKind.Number:
-                sb.Append(((JsonNumber)value).RawValue);
+                sb.Append(value.GetRawValue());
                 break;
             case JsonValueKind.String:
-                sb.Append(((JsonString)value).RawValue);
+                sb.Append(value.GetRawValue());
                 break;
             case JsonValueKind.Array:
                 DebugAppendArray((JsonArray)value, sb, indent);

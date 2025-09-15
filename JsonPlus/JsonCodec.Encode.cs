@@ -4,7 +4,7 @@ using System.Text;
 
 public partial class JsonCodec
 {
-    public static string Encode(IJsonValue value)
+    public static string Encode(JsonValue value)
     {
         var sb = new StringBuilder();
         AppendValue(value, sb);
@@ -42,7 +42,7 @@ public partial class JsonCodec
         return sb.ToString();
     }
 
-    private static void AppendValue(IJsonValue value, StringBuilder sb)
+    private static void AppendValue(JsonValue value, StringBuilder sb)
     {
         AppendTrivia(value.LeadingTrivia, sb);
         switch (value.Kind)
@@ -51,19 +51,19 @@ public partial class JsonCodec
                 sb.Append("null");
                 break;
             case JsonValueKind.Boolean:
-                sb.Append(((JsonBoolean)value).Value ? "true" : "false");
+                sb.Append(value.GetBoolean() ? "true" : "false");
                 break;
             case JsonValueKind.Number:
-                sb.Append(((JsonNumber)value).RawValue);
+                sb.Append(value.GetRawValue());
                 break;
             case JsonValueKind.String:
-                sb.Append(((JsonString)value).RawValue);
+                sb.Append(value.GetRawValue());
                 break;
             case JsonValueKind.Array:
-                AppendArray((JsonArray)value, sb);
+                AppendArray(value.GetArrayValue(), sb);
                 break;
             case JsonValueKind.Object:
-                AppendObject((JsonObject)value, sb);
+                AppendObject(value.GetObjectValue(), sb);
                 break;
         }
         AppendTrivia(value.TrailingTrivia, sb);

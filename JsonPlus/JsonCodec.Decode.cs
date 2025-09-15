@@ -20,7 +20,7 @@ public class JsonParsingException(string message, string token, JsonPosition pos
 public record JsonDecodingOptions(bool AllowTrailingCommas, bool AllowSingleLineComments, bool AllowMultiLineComments, int MaxNestingDepth);
 
 /// <summary>
-/// A Concrete Syntax Tree JSON parser that produces a <see cref="IJsonValue" />, including comments and whitespace as trivia.
+/// A Concrete Syntax Tree JSON parser that produces a <see cref="JsonValue" />, including comments and whitespace as trivia.
 /// </summary>
 public partial class JsonCodec
 {
@@ -36,19 +36,19 @@ public partial class JsonCodec
 
     public static readonly JsonDecodingOptions RelaxedDecodingOptions = new(AllowMultiLineComments: true, AllowSingleLineComments: true, AllowTrailingCommas: true, MaxNestingDepth: 1000);
 
-    public static IJsonValue Decode(string json)
+    public static JsonValue Decode(string json)
     {
         var codec = Instance.Value ?? throw new InvalidOperationException("Failed to initialize JsonCodec instance");
         return codec.DecodeValue(json, RelaxedDecodingOptions);
     }
 
-    public static IJsonValue Decode(string json, JsonDecodingOptions options)
+    public static JsonValue Decode(string json, JsonDecodingOptions options)
     {
         var codec = Instance.Value ?? throw new InvalidOperationException("Failed to initialize JsonCodec instance");
         return codec.DecodeValue(json, options);
     }
 
-    private IJsonValue DecodeValue(string json, JsonDecodingOptions options)
+    private JsonValue DecodeValue(string json, JsonDecodingOptions options)
     {
         ArgumentNullException.ThrowIfNull(json);
         ArgumentNullException.ThrowIfNull(options);
@@ -79,11 +79,11 @@ public partial class JsonCodec
         return Reader.CreateParsingException(message);
     }
 
-    private IJsonValue ParseValue()
+    private JsonValue ParseValue()
     {
         var value = Reader.Current switch
         {
-            '[' => ParseArray() as IJsonValue,
+            '[' => ParseArray() as JsonValue,
             '{' => ParseObject(),
             '"' => ParseString(),
             'n' => ParseNull(),
@@ -242,7 +242,7 @@ public partial class JsonCodec
         }
     }
 
-    private void ParsePrimitiveValueTrivia(IJsonValue value)
+    private void ParsePrimitiveValueTrivia(JsonValue value)
     {
         var tmp = value.LeadingTrivia;
         value.LeadingTrivia = CurrentTrivia;
@@ -251,7 +251,7 @@ public partial class JsonCodec
         ParseWhiteSpaceAndCommentsTrivia(CurrentTrivia, false);
     }
 
-    private void ParseLeadingTrivia(IJsonValue value, JsonTriviaKind currentTriviaTokenKind, string currentTriviaTokenValue)
+    private void ParseLeadingTrivia(JsonValue value, JsonTriviaKind currentTriviaTokenKind, string currentTriviaTokenValue)
     {
         var tmp = value.LeadingTrivia;
         value.LeadingTrivia = CurrentTrivia;
@@ -262,7 +262,7 @@ public partial class JsonCodec
         ParseWhiteSpaceAndCommentsTrivia(CurrentTrivia, false);
     }
 
-    private void ParseTrailingTrivia(IJsonValue value, JsonTriviaKind currentTriviaTokenKind, string currentTriviaTokenValue)
+    private void ParseTrailingTrivia(JsonValue value, JsonTriviaKind currentTriviaTokenKind, string currentTriviaTokenValue)
     {
         var tmp = value.TrailingTrivia;
         if (value.TrailingTrivia.Count == 0)
